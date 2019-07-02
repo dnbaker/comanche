@@ -859,8 +859,8 @@ class Arena_allocator : public Common::Base_memory_allocator {
 
     try {
       mr = _range_allocator.alloc(size);
-    } catch (General_exception e) {
-      PERR("%s", "Arena_allocator: out of memory");
+    } catch (General_exception &e) {
+      PERR("Arena_allocator: out of memory %s", e.cause());
       exit(0);
     }
     assert(mr);
