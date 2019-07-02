@@ -22,7 +22,7 @@ float get_rdtsc_frequency_mhz() {
 
   /* First try to get cpu freq from model name. */
   match = strstr(buffer, "model name");
-  assert(match);
+  assert(match || !std::fprintf(stderr, "buffer: %s. query: %s", buffer, "model name"));
   while (*match != '@') match++;
   /* Parse the line to extract the clock speed. */
   sscanf(match, "@ %f", &clock_speed);
