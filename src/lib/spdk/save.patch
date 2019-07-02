@@ -1,0 +1,54 @@
+diff --git a/mk/spdk.common.mk b/mk/spdk.common.mk
+index 3612551c7..77ff1958d 100644
+--- a/mk/spdk.common.mk
++++ b/mk/spdk.common.mk
+@@ -57,6 +57,10 @@ bindir?=$(CONFIG_PREFIX)/bin
+ libdir?=$(CONFIG_PREFIX)/lib
+ includedir?=$(CONFIG_PREFIX)/include
+ 
++DPDK_DIR?=.
++
++INCDIRS+=-I $(DPDK_DIR) -I $(DPDK_DIR)/include
++
+ ifeq ($(MAKECMDGOALS),)
+ MAKECMDGOALS=$(.DEFAULT_GOAL)
+ endif
+@@ -73,7 +77,7 @@ endif
+ 
+ TARGET_MACHINE := $(firstword $(TARGET_TRIPLET_WORDS))
+ 
+-COMMON_CFLAGS = -g $(C_OPT) -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wmissing-declarations -fno-strict-aliasing -I$(SPDK_ROOT_DIR)/include
++COMMON_CFLAGS = -g $(C_OPT) -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wmissing-declarations -fno-strict-aliasing -I$(SPDK_ROOT_DIR)/include $(INCDIRS)
+ 
+ ifneq ($(filter powerpc%,$(TARGET_MACHINE)),)
+ COMMON_CFLAGS += -mcpu=native
+@@ -207,12 +211,12 @@ DEPFLAGS = -MMD -MP -MF $*.d.tmp
+ 
+ # Compile first input $< (.c) into $@ (.o)
+ COMPILE_C=\
+-	$(Q)echo "  CC $S/$@"; \
++	$(Q)echo "  CC $S/$@ with $(CFLAGS) in '$(shell pwd)' and dpdk dir $(DPDK_DIR)" ; \
+ 	$(CC) -o $@ $(DEPFLAGS) $(CFLAGS) -c $< && \
+ 	mv -f $*.d.tmp $*.d && touch -c $@
+ 
+ COMPILE_CXX=\
+-	$(Q)echo "  CXX $S/$@"; \
++	$(Q)echo "  CXX $S/$@ with $(CXXFLAGS) "; \
+ 	$(CXX) -o $@ $(DEPFLAGS) $(CXXFLAGS) -c $< && \
+ 	mv -f $*.d.tmp $*.d && touch -c $@
+ 
+diff --git a/test/unit/lib/nvme/nvme_ns_ocssd_cmd.c/nvme_ns_ocssd_cmd_ut.c b/test/unit/lib/nvme/nvme_ns_ocssd_cmd.c/nvme_ns_ocssd_cmd_ut.c
+index 5d1f42b8d..780505121 100644
+--- a/test/unit/lib/nvme/nvme_ns_ocssd_cmd.c/nvme_ns_ocssd_cmd_ut.c
++++ b/test/unit/lib/nvme/nvme_ns_ocssd_cmd.c/nvme_ns_ocssd_cmd_ut.c
+@@ -39,6 +39,10 @@
+ 
+ #include "common/lib/test_env.c"
+ 
++#ifndef PAGE_SIZE
++#define PAGE_SIZE  sysconf(_SC_PAGESIZE)
++#endif
++
+ DEFINE_STUB(spdk_nvme_qpair_process_completions, int32_t,
+ 	    (struct spdk_nvme_qpair *qpair,
+ 	     uint32_t max_completions), 0);
